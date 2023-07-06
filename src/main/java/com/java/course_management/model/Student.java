@@ -10,6 +10,7 @@ public class Student {
   private String departmentName;
   private String majorName;
   private String password;
+  private String photo;
 
 
   public String getStudentId() {
@@ -72,6 +73,15 @@ public class Student {
 
   public void setPassword(String password) {
     this.password = password;
+  }
+
+
+  public String getPhoto() {
+    return photo;
+  }
+
+  public void setPhoto(String photo) {
+    this.photo = photo;
   }
 
 }
