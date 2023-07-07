@@ -1,44 +1,145 @@
 package com.java.course_management.model;
 
 public class AllAttributes {
-    // Blog
+
+    /**
+     * 评论时间 Blog
+     */
     private String commentTime;
+
+    /**
+     * 评论内容 Blog
+     */
     private String comment;
+
+    /**
+     * 评价分数 Blog
+     */
     private long value;
+
+    /**
+     * 学生学号 Blog Student Report
+     */
     private String studentId;
+
+    /**
+     * 课程名称 Requirement Blog
+     */
     private String courseName;
+
+    /**
+     * 教师名称 Teacher Blog
+     */
     private String teacherName;
+
+    /**
+     * 点赞数 Blog
+     */
     private long good;
+
+    /**
+     * 收藏数 Blog
+     */
     private long star;
 
-    // Class
+    /**
+     * 教学班号 Class Report Schedule
+     */
     private String classId;
+
+    /**
+     * 班级容量 Class
+     */
     private long capacity;
+
+    /**
+     * 教师工号 Teacher Class
+     */
     private String teacherId;
+
+    /**
+     * 课程编号 Requirement Class
+     */
     private String courseId;
 
-    // Report
+    /**
+     * 课程成绩 Report
+     */
     private long score;
 
-    // Requirement
+    /**
+     * 专业名称 Requirement Student
+     */
     private String majorName;
+
+    /**
+     * 学院名称 Requirement Teacher Student
+     */
     private String departmentName;
+
+    /**
+     * 开课学期 Requirement
+     */
     private String semester;
+
+    /**
+     * 课程类型 Requirement
+     */
     private String courseType;
+
+    /**
+     * 课程性质 Requirement
+     */
     private String compulsory;
+
+    /**
+     * 课程学分 Requirement
+     */
     private double credit;
 
-    // Schedule
+    /**
+     * 上课周数 Schedule
+     */
     private long weekNum;
+
+    /**
+     * 上课星期数 Schedule
+     */
     private long week;
+
+    /**
+     * 上课时段 Schedule
+     */
     private long timeQuantum;
+
+    /**
+     * 上课教室 Schedule
+     */
     private String classroom;
 
-    // Student
+    /**
+     * 学生姓名 Student
+     */
     private String studentName;
+
+    /**
+     * 学生性别 Student
+     */
     private String gender;
+
+    /**
+     * 入学年份 Student
+     */
     private long enrollmentYear;
+
+    /**
+     * 学生登录密码 Student
+     */
     private String password;
+
+    /**
+     * 学生账号头像 Student
+     */
     private String photo;
 
     public String getCommentTime() {

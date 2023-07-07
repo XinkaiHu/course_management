@@ -16,10 +16,11 @@ public class Controller {
     JdbcTemplate jdbcTemplate;
 
     /**
-     * login 原 login
+     * 登录学生账号
+     * 根据学生学号和密码与数据库中的密码进行对比，判断是否成功登录
      *
-     * @param studentId
-     * @param password
+     * @param studentId 学生学号
+     * @param password  学生登录密码
      * @return
      */
     @GetMapping("login")
@@ -39,10 +40,11 @@ public class Controller {
     }
 
     /**
-     * getCourseByKeyword 原 getCourseByKeyword
+     * 查询选课信息
+     * 根据学生学号和用户在搜索框中输入的关键词，查找与关键词相关的课程信息
      *
-     * @param studentId
-     * @param keyword
+     * @param studentId 学生学号
+     * @param keyword 搜索框关键词
      * @return
      */
     @GetMapping("getCourseByKeyword")
@@ -77,10 +79,10 @@ public class Controller {
     }
 
     /**
-     * getClassByCourse 原 getCourseInfo
+     * 查询所选课程的班级信息
      *
-     * @param studentId
-     * @param courseId
+     * @param studentId 学生学号
+     * @param courseId 课程编号
      * @return
      */
     @GetMapping("getClassByCourse")
@@ -112,19 +114,17 @@ public class Controller {
     }
 
     /**
-     * getSchedule 原 scheduleByWeekNumAndSemester
+     * 查询课表
      *
-     * @param studentId
-     * @param weekNum
+     * @param studentId 学生学号
+     * @param weekNum 上课周数
      * @return
      */
     @GetMapping("getSchedule")
     public Result getSchedule(
             String studentId,
             int weekNum) {
-        List<String> sqlList = new ArrayList<>();
-        sqlList.add("" +
-                "select courseName                                                  " +
+        String sqlCourseName = "select courseName                                   " +
                 "from requirement                                                   " +
                 "where courseId=(                                                   " +
                 "       select courseId                                             " +
@@ -139,9 +139,9 @@ public class Controller {
                 "       and majorName=(                                             " +
                 "               select majorName                                    " +
                 "               from student                                        " +
-                "               where studentId=?);                                 ");
-        sqlList.add("" +
-                "select classroom                                                   " +
+                "               where studentId=?);                                 ";
+
+        String sqlClassroom = "select classroom                                     " +
                 "from schedule                                                      " +
                 "       natural join class                                          " +
                 "       natural join report                                         " +
@@ -149,9 +149,9 @@ public class Controller {
                 "       and week=?                                                  " +
                 "       and weekNum=?                                               " +
                 "       and timeQuantum=?                                           " +
-                "       and score is null;                                          ");
-        sqlList.add("" +
-                "select teacherName                                                 " +
+                "       and score is null;                                          ";
+
+        String sqlTeacherName = "select teacherName                                 " +
                 "from schedule                                                      " +
                 "       natural join class                                          " +
                 "       natural join report                                         " +
@@ -160,9 +160,9 @@ public class Controller {
                 "       and week=?                                                  " +
                 "       and weekNum=?                                               " +
                 "       and timeQuantum=?                                           " +
-                "       and score is null;                                          ");
-        sqlList.add("" +
-                "select courseId                                                    " +
+                "       and score is null;                                          ";
+
+        String sqlCourseId = "select courseId                                       " +
                 "from schedule                                                      " +
                 "       natural join class                                          " +
                 "       natural join report                                         " +
@@ -170,7 +170,7 @@ public class Controller {
                 "       and week=?                                                  " +
                 "       and weekNum=?                                               " +
                 "       and timeQuantum=?                                           " +
-                "       and score is null;                                          ");
+                "       and score is null;                                          ";
         List<Map<String, List<String>>> result = new ArrayList<>();
         for (int week = 1; week <= 7; ++week) {
             Map<String, List<String>> map = new HashMap<>();
@@ -180,22 +180,26 @@ public class Controller {
             map.put("courseId", new ArrayList<>());
             for (int timeQuantum = 1; timeQuantum <= 5; ++timeQuantum) {
                 try {
-                    map.get("courseName").add(jdbcTemplate.queryForObject(sqlList.get(0), String.class, studentId, week, weekNum, timeQuantum, studentId));
+                    map.get("courseName").add(jdbcTemplate.queryForObject(sqlCourseName, String.class,
+                            studentId, week, weekNum, timeQuantum, studentId));
                 } catch (Exception e) {
                     map.get("courseName").add("");
                 }
                 try {
-                    map.get("classroom").add(jdbcTemplate.queryForObject(sqlList.get(1), String.class, studentId, week, weekNum, timeQuantum));
+                    map.get("classroom").add(jdbcTemplate.queryForObject(sqlClassroom, String.class,
+                            studentId, week, weekNum, timeQuantum));
                 } catch (Exception e) {
                     map.get("classroom").add("");
                 }
                 try {
-                    map.get("teacherName").add(jdbcTemplate.queryForObject(sqlList.get(2), String.class, studentId, week, weekNum, timeQuantum));
+                    map.get("teacherName").add(jdbcTemplate.queryForObject(sqlTeacherName, String.class,
+                            studentId, week, weekNum, timeQuantum));
                 } catch (Exception e) {
                     map.get("teacherName").add("");
                 }
                 try {
-                    map.get("courseId").add(jdbcTemplate.queryForObject(sqlList.get(3), String.class, studentId, week, weekNum, timeQuantum));
+                    map.get("courseId").add(jdbcTemplate.queryForObject(sqlCourseId, String.class,
+                            studentId, week, weekNum, timeQuantum));
                 } catch (Exception e) {
                     map.get("courseId").add("");
                 }
@@ -206,9 +210,9 @@ public class Controller {
     }
 
     /**
-     * getReport 原 courseScore
+     * 查询成绩单
      *
-     * @param studentId
+     * @param studentId 学生学号
      * @return
      */
     @GetMapping("getReport")
@@ -227,9 +231,9 @@ public class Controller {
     }
 
     /**
-     * getWeightedAverageScore 原 weighedAverageScore
+     * 查询平均分
      *
-     * @param studentId
+     * @param studentId 学生学号
      * @return
      */
     @GetMapping("getWeightedAverageScore")
@@ -258,17 +262,14 @@ public class Controller {
         System.out.println(sumOfWeightedScore);
         System.out.println(sumOfCredit);
         double weightedAverageScore = sumOfWeightedScore / sumOfCredit;
-        String result = Double.toString(weightedAverageScore);
-        if (result.length() > 7) {
-            result = result.substring(0, 7);
-        }
+        String result = String.format("%.4f", weightedAverageScore);
         return Result.ok(result);
     }
 
     /**
-     * getGPA 原 weightedAverageGPA
+     * 查询绩点
      *
-     * @param studentId
+     * @param studentId 学生学号
      * @return
      */
     @GetMapping("getGPA")
@@ -309,16 +310,13 @@ public class Controller {
         }
         System.out.println(sumOfWeightedScore);
         System.out.println(sumOfCredit);
-        Double GPA = 0.1 * (sumOfWeightedScore - 50 * sumOfCredit) / sumOfCredit;
-        String result = GPA.toString();
-        if (result.length() > 6) {
-            result = result.substring(0, 6);
-        }
+        double GPA = 0.1 * (sumOfWeightedScore - 50 * sumOfCredit) / sumOfCredit;
+        String result = String.format("%.4f", GPA);
         return Result.ok(result);
     }
 
     /**
-     * getBlog 原 getBlog
+     * 查询学生论坛信息
      *
      * @return
      */
@@ -334,7 +332,7 @@ public class Controller {
     }
 
     /**
-     * register 原 register
+     * 学生用户注册
      *
      * @param studentId
      * @param studentName
@@ -359,7 +357,7 @@ public class Controller {
     }
 
     /**
-     * takeClass 选教学班
+     * 选教学班
      *
      * @param studentId
      * @param classId
@@ -395,7 +393,7 @@ public class Controller {
     }
 
     /**
-     * dropCourse 通过课程编号退课 原 course/deleteById
+     * 通过课程编号退课
      *
      * @param studentId
      * @param courseId
@@ -420,7 +418,7 @@ public class Controller {
     }
 
     /**
-     * dropClass 通过教学班号退课
+     * 通过教学班号退课
      *
      * @param studentId
      * @param classId
@@ -442,7 +440,7 @@ public class Controller {
     }
 
     /**
-     * updateScore 原 course/update
+     * 更新学生成绩
      *
      * @param studentId
      * @param classId
@@ -468,7 +466,7 @@ public class Controller {
     }
 
     /**
-     * shareBlog 原 shareBlog
+     * 在学生论坛发布博客
      *
      * @param commentTime
      * @param comment
@@ -502,6 +500,13 @@ public class Controller {
         return Result.fail("Args: " + Arrays.toString(args));
     }
 
+    /**
+     * 更新博客点赞数
+     *
+     * @param commentTime
+     * @param good
+     * @return
+     */
     @PostMapping("updateLike")
     public Result updateLike(@RequestBody AllAttributes allAttributes) {
         String sql = "update blog                                                   " +

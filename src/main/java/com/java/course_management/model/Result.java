@@ -3,9 +3,24 @@ package com.java.course_management.model;
 
 public class Result {
 
+    /**
+     * 是否成功
+     */
     private Boolean isSuccess;
+
+    /**
+     * 错误信息
+     */
     private String errorMsg;
+
+    /**
+     * 状态码
+     */
     private Integer status;
+
+    /**
+     * 时间戳
+     */
     private Long timestamp;
 
     public Boolean getSuccess() {

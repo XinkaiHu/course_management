@@ -24,14 +24,21 @@ public class FileLoader {
     @Resource
     JdbcTemplate jdbcTemplate;
 
+    /**
+     * 上传文件
+     *
+     * @param file 被上传的文件
+     * @return
+     * @throws IOException
+     */
     @PostMapping("upload")
     public Result uploadFile(MultipartFile file) throws IOException {
         String fileName = file.getOriginalFilename();
         fileName.replaceAll(" ", "");
-        String path =  ResourceUtils.getURL("classpath:").getPath() ;
+        String path = ResourceUtils.getURL("classpath:").getPath();
 
-        File dir = new File(path+"/upload");
-        if(!dir.exists()){
+        File dir = new File(path + "/upload");
+        if (!dir.exists()) {
             boolean mkdirs = dir.mkdirs();
         }
         File realFile = new File(dir + "/" + fileName);
@@ -44,7 +51,8 @@ public class FileLoader {
     }
 
     /**
-     * 上传头像
+     * 更新数据库中头像信息
+     *
      * @param studentId
      * @param photo
      * @return
@@ -62,25 +70,33 @@ public class FileLoader {
     }
 
     /**
-     * 获取文件路径
-     * @param studentId
+     * 获取上传头像的访问路径
+     *
+     * @param studentId 学生学号
      * @return
      */
     @GetMapping("getPhoto")
     public Result getPhoto(String studentId) {
         String sql = "select photo from student where studentId=?;";
-        Object[] args = new Object[] {studentId};
+        Object[] args = new Object[]{studentId};
         String fileName = jdbcTemplate.queryForObject(sql, String.class, args);
         return Result.ok("http://192.168.1.178:8080/upload/" + fileName);
     }
 
+    /**
+     * 下载文件
+     *
+     * @param filePath 被下载的文件名
+     * @return
+     * @throws IOException
+     */
     @GetMapping("download")
     public ResponseEntity<byte[]> downloadFile(String filePath) throws IOException {
         File file = new File("C:\\Users\\XinkaiHu\\Documents\\_programming\\course_management\\target\\classes\\upload\\" + filePath);
         byte[] data = Files.readAllBytes(file.toPath());
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentDispositionFormData("attachment", new String(file.getName().getBytes(),"iso8859-1"));
+        headers.setContentDispositionFormData("attachment", new String(file.getName().getBytes(), "iso8859-1"));
         headers.setContentLength(data.length);
         return new ResponseEntity<>(data, headers, HttpStatus.OK);
     }
