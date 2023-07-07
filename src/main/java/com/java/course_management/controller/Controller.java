@@ -26,7 +26,10 @@ public class Controller {
     public Result login(
             String studentId,
             String password) {
-        String sql = "select * from student where studentId=? and password=?;";
+        String sql = "select *                                                      " +
+                "from student                                                       " +
+                "where studentId=?                                                  " +
+                "       and password=?;                                             ";
         Object[] args = new Object[]{studentId, password};
         List<Map<String, Object>> result = jdbcTemplate.queryForList(sql, args);
         if (result.isEmpty()) {
@@ -38,6 +41,7 @@ public class Controller {
     /**
      * getCourseByKeyword 原 getCourseByKeyword
      *
+     * @param studentId
      * @param keyword
      * @return
      */
@@ -48,23 +52,26 @@ public class Controller {
         if (keyword == null) {
             keyword = "";
         }
-        String sql = "select * from requirement where (courseId like concat('%', ?, '%') or courseName like concat('%', ?, '%')) and majorName in (select majorName from student where studentId=?) order by semester;";
-        Object[] args = new Object[]{keyword, keyword, studentId};
-        List<Map<String, Object>> result = jdbcTemplate.queryForList(sql, args);
-        return Result.ok(result);
-    }
-
-    /**
-     * getCourse 原 course/selectByIdOrName
-     *
-     * @param studentId
-     * @return
-     */
-    @GetMapping("getCourse")
-    public Result getCourse(
-            String studentId) {
-        String sql = "select * from student natural join requirement where studentId=?;";
-        Object[] args = new Object[]{studentId};
+        String sql = "select *                                                      " +
+                "from requirement                                                   " +
+                "where (                                                            " +
+                "       courseId like concat('%', ?, '%')                           " +
+                "       or courseName like concat('%', ?, '%'))                     " +
+                "and majorName in (                                                 " +
+                "       select majorName                                            " +
+                "       from student                                                " +
+                "       where studentId=?)                                          " +
+                "and courseId not in (                                              " +
+                "       select courseId                                             " +
+                "       from report natural join class                              " +
+                "       where studentId=?                                           " +
+                "               and score is not null)                              " +
+                "order by semester;                                                 ";
+        Object[] args = new Object[]{
+                keyword,
+                keyword,
+                studentId,
+                studentId};
         List<Map<String, Object>> result = jdbcTemplate.queryForList(sql, args);
         return Result.ok(result);
     }
@@ -72,14 +79,34 @@ public class Controller {
     /**
      * getClassByCourse 原 getCourseInfo
      *
+     * @param studentId
      * @param courseId
      * @return
      */
     @GetMapping("getClassByCourse")
     public Result getClassByCourse(
+            String studentId,
             String courseId) {
-        String sql = "select distinct classId, teacherName, campus from class natural join teacher where courseId=?;";
-        Object[] args = new Object[]{courseId};
+        String sql = "select distinct                                               " +
+                "       class.classId,                                              " +
+                "       teacherName,                                                " +
+                "       campus,                                                     " +
+                "       capacity,                                                   " +
+                "       (class.classId in (                                         " +
+                "               select report.classId                               " +
+                "               from report                                         " +
+                "               where studentId=?))                                 " +
+                "       as taken, (                                                 " +
+                "               select count(studentId)                             " +
+                "               from report                                         " +
+                "                       natural join class as c                     " +
+                "               where c.classId=class.classId)                      " +
+                "       as currentTake                                              " +
+                "from class                                                         " +
+                "natural join teacher                                               " +
+                "where courseId=?;                                                  ";
+        Object[] args = new Object[]{studentId, courseId};
+        System.out.println("Args: " + Arrays.toString(args));
         List<Map<String, Object>> result = jdbcTemplate.queryForList(sql, args);
         return Result.ok(result);
     }
@@ -96,10 +123,54 @@ public class Controller {
             String studentId,
             int weekNum) {
         List<String> sqlList = new ArrayList<>();
-        sqlList.add("select courseName from requirement where courseId=(select courseId from schedule natural join class natural join report where studentId=? and week=? and weekNum=? and timeQuantum=? and score is null) and majorName=(select majorName from student where studentId=?);");
-        sqlList.add("select classroom from schedule natural join class natural join report where studentId=? and week=? and weekNum=? and timeQuantum=? and score is null;");
-        sqlList.add("select teacherName from schedule natural join class natural join report natural join teacher where studentId=? and week=? and weekNum=? and timeQuantum=? and score is null;");
-        sqlList.add("select courseId from schedule natural join class natural join report where studentId=? and week=? and weekNum=? and timeQuantum=? and score is null;");
+        sqlList.add("" +
+                "select courseName                                                  " +
+                "from requirement                                                   " +
+                "where courseId=(                                                   " +
+                "       select courseId                                             " +
+                "       from schedule                                               " +
+                "               natural join class                                  " +
+                "               natural join report                                 " +
+                "       where studentId=?                                           " +
+                "               and week=?                                          " +
+                "               and weekNum=?                                       " +
+                "               and timeQuantum=?                                   " +
+                "               and score is null)                                  " +
+                "       and majorName=(                                             " +
+                "               select majorName                                    " +
+                "               from student                                        " +
+                "               where studentId=?);                                 ");
+        sqlList.add("" +
+                "select classroom                                                   " +
+                "from schedule                                                      " +
+                "       natural join class                                          " +
+                "       natural join report                                         " +
+                "where studentId=?                                                  " +
+                "       and week=?                                                  " +
+                "       and weekNum=?                                               " +
+                "       and timeQuantum=?                                           " +
+                "       and score is null;                                          ");
+        sqlList.add("" +
+                "select teacherName                                                 " +
+                "from schedule                                                      " +
+                "       natural join class                                          " +
+                "       natural join report                                         " +
+                "       natural join teacher                                        " +
+                "where studentId=?                                                  " +
+                "       and week=?                                                  " +
+                "       and weekNum=?                                               " +
+                "       and timeQuantum=?                                           " +
+                "       and score is null;                                          ");
+        sqlList.add("" +
+                "select courseId                                                    " +
+                "from schedule                                                      " +
+                "       natural join class                                          " +
+                "       natural join report                                         " +
+                "where studentId=?                                                  " +
+                "       and week=?                                                  " +
+                "       and weekNum=?                                               " +
+                "       and timeQuantum=?                                           " +
+                "       and score is null;                                          ");
         List<Map<String, List<String>>> result = new ArrayList<>();
         for (int week = 1; week <= 7; ++week) {
             Map<String, List<String>> map = new HashMap<>();
@@ -143,7 +214,13 @@ public class Controller {
     @GetMapping("getReport")
     public Result getReport(
             String studentId) {
-        String sql = "select * from report natural join class natural join requirement natural join student where studentId=? and score is not null;";
+        String sql = "select *                                                      " +
+                "from report                                                        " +
+                "       natural join class                                          " +
+                "       natural join requirement                                    " +
+                "       natural join student                                        " +
+                "where studentId=?                                                  " +
+                "       and score is not null;                                      ";
         Object[] args = new Object[]{studentId};
         List<Map<String, Object>> result = jdbcTemplate.queryForList(sql, args);
         return Result.ok(result);
@@ -157,21 +234,31 @@ public class Controller {
      */
     @GetMapping("getWeightedAverageScore")
     public Result getWeightedAverageScore(String studentId) {
-        String sql = "select sum(credit) from requirement natural join class natural join report where studentId=? and score is not null;";
+        String sql = "select sum(credit)                                            " +
+                "from requirement                                                   " +
+                "       natural join class                                          " +
+                "       natural join report                                         " +
+                "where studentId=?                                                  " +
+                "       and score is not null;                                      ";
         Object[] args = new Object[]{studentId};
         Double sumOfCredit = jdbcTemplate.queryForObject(sql, Double.class, args);
         if (sumOfCredit == null) {
             return Result.ok();
         }
-        sql = "select sum(credit * score) from requirement natural join class natural join report where studentId=? and score is not null;";
+        sql = "select sum(credit * score)                                           " +
+                "from requirement                                                   " +
+                "       natural join class                                          " +
+                "       natural join report                                         " +
+                "where studentId=?                                                  " +
+                "       and score is not null;                                      ";
         Double sumOfWeightedScore = jdbcTemplate.queryForObject(sql, double.class, args);
         if (sumOfWeightedScore == null) {
             return Result.fail("Args: " + Arrays.toString(args));
         }
         System.out.println(sumOfWeightedScore);
         System.out.println(sumOfCredit);
-        Double weightedAverageScore = sumOfWeightedScore / sumOfCredit;
-        String result = weightedAverageScore.toString();
+        double weightedAverageScore = sumOfWeightedScore / sumOfCredit;
+        String result = Double.toString(weightedAverageScore);
         if (result.length() > 7) {
             result = result.substring(0, 7);
         }
@@ -186,15 +273,32 @@ public class Controller {
      */
     @GetMapping("getGPA")
     public Result getGPA(String studentId) {
-        String sql = "select sum(credit) from requirement natural join class natural join report where studentId=? and score is not null;";
+        String sql = "select sum(credit)                                            " +
+                "from requirement                                                   " +
+                "       natural join class                                          " +
+                "       natural join report                                         " +
+                "where studentId=?                                                  " +
+                "       and score is not null;                                      ";
         Object[] args = new Object[]{studentId};
         Double sumOfCredit = jdbcTemplate.queryForObject(sql, Double.class, args);
         if (sumOfCredit == null) {
             return Result.ok();
         }
-        sql = "select sum(credit) from requirement natural join class natural join report where studentId=? and score is not null and score>=90;";
+        sql = "select sum(credit)                                                   " +
+                "from requirement                                                   " +
+                "       natural join class                                          " +
+                "       natural join report                                         " +
+                "where studentId=?                                                  " +
+                "       and score is not null                                       " +
+                "       and score>=90;                                              ";
         Double sumOfCreditGT90 = jdbcTemplate.queryForObject(sql, Double.class, args);
-        sql = "select sum(credit * score) from requirement natural join class natural join report where studentId=? and score is not null and score<90;";
+        sql = "select sum(credit * score)                                           " +
+                "from requirement                                                   " +
+                "       natural join class                                          " +
+                "       natural join report                                         " +
+                "where studentId=?                                                  " +
+                "       and score is not null                                       " +
+                "       and score<90;                                               ";
         Double sumOfWeightedScoreLT90 = jdbcTemplate.queryForObject(sql, Double.class, args);
         double sumOfWeightedScore = 0.0;
         if (sumOfCreditGT90 != null) {
@@ -220,7 +324,11 @@ public class Controller {
      */
     @GetMapping("getBlog")
     public Result getBlog() {
-        String sql = "select * from blog join student on blog.studentId=student.studentId order by commentTime desc;";
+        String sql = "" +
+                "select *                                                           " +
+                "from blog join student                                             " +
+                "       on blog.studentId=student.studentId                         " +
+                "order by commentTime desc;                                         ";
         List<Map<String, Object>> result = jdbcTemplate.queryForList(sql);
         return Result.ok(result);
     }
@@ -235,7 +343,10 @@ public class Controller {
      */
     @PostMapping("register")
     public Result register(@RequestBody AllAttributes allAttributes) {
-        String sql = "update student set password=? where studentId=? and studentName=?;";
+        String sql = "update student                                                " +
+                "set password=?                                                     " +
+                "where studentId=?                                                  " +
+                "       and studentName=?;                                          ";
         Object[] args = new Object[]{
                 allAttributes.getPassword(),
                 allAttributes.getStudentId(),
@@ -256,14 +367,23 @@ public class Controller {
      */
     @PostMapping("takeClass")
     public Result takeClass(@RequestBody AllAttributes allAttributes) {
-        String sql = "select * from report natural join class where studentId=? and courseId in (select courseId from class where classId=?);";
-        Object[] args = new Object[] {
+        String sql = "select *                                                      " +
+                "from report                                                        " +
+                "       natural join class                                          " +
+                "where studentId=?                                                  " +
+                "       and courseId in (                                           " +
+                "               select courseId                                     " +
+                "               from class                                          " +
+                "               where classId=?);                                   ";
+        Object[] args = new Object[]{
                 allAttributes.getStudentId(),
                 allAttributes.getClassId()};
         if (!jdbcTemplate.queryForList(sql, args).isEmpty()) {
             return Result.fail("Args: " + Arrays.toString(args));
         }
-        sql = "insert into report (studentId, classId) values (?, ?);";
+        sql = "insert into report                                                   " +
+                "(studentId, classId)                                               " +
+                "values (?, ?);                                                     ";
         args = new Object[]{
                 allAttributes.getStudentId(),
                 allAttributes.getClassId()};
@@ -283,7 +403,12 @@ public class Controller {
      */
     @PostMapping("dropCourse")
     public Result dropCourse(@RequestBody AllAttributes allAttributes) {
-        String sql = "delete from report where studentId=? and classId in (select classId from class where courseId=?);";
+        String sql = "delete from report                                            " +
+                "where studentId=?                                                  " +
+                "       and classId in (                                            " +
+                "               select classId                                      " +
+                "               from class                                          " +
+                "               where courseId=?);                                  ";
         Object[] args = new Object[]{
                 allAttributes.getStudentId(),
                 allAttributes.getCourseId()};
@@ -303,7 +428,9 @@ public class Controller {
      */
     @PostMapping("dropClass")
     public Result dropClass(@RequestBody AllAttributes allAttributes) {
-        String sql = "delete from report where studentId=? and classId=?;";
+        String sql = "delete from report                                            " +
+                "where studentId=?                                                  " +
+                "       and classId=?;                                              ";
         Object[] args = new Object[]{
                 allAttributes.getStudentId(),
                 allAttributes.getClassId()};
@@ -324,7 +451,10 @@ public class Controller {
      */
     @PostMapping("updateScore")
     public Result updateScore(@RequestBody AllAttributes allAttributes) {
-        String sql = "update report set score=? where studentId=? and classId=?;";
+        String sql = "update report                                                 " +
+                "set score=?                                                        " +
+                "where studentId=?                                                  " +
+                "       and classId=?;                                              ";
         Object[] args = new Object[]{
                 allAttributes.getScore(),
                 allAttributes.getStudentId(),
@@ -350,7 +480,14 @@ public class Controller {
      */
     @PostMapping("shareBlog")
     public Result shareBlog(@RequestBody AllAttributes allAttributes) {
-        String sql = "insert into blog (commentTime, comment, value, studentId, courseName, teacherName) values (?, ?, ?, ?, ?, ?);";
+        String sql = "insert into blog (                                            " +
+                "       commentTime,                                                " +
+                "       comment,                                                    " +
+                "       value,                                                      " +
+                "       studentId,                                                  " +
+                "       courseName,                                                 " +
+                "       teacherName                                                 " +
+                ") values (?, ?, ?, ?, ?, ?);                                       ";
         Object[] args = new Object[]{
                 allAttributes.getCommentTime(),
                 allAttributes.getComment(),
@@ -367,8 +504,12 @@ public class Controller {
 
     @PostMapping("updateLike")
     public Result updateLike(@RequestBody AllAttributes allAttributes) {
-        String sql = "update blog set good=? where commentTime=?;";
-        Object[] args = new Object[] {allAttributes.getGood(), allAttributes.getCommentTime()};
+        String sql = "update blog                                                   " +
+                "set good=?                                                         " +
+                "where commentTime=?;                                               ";
+        Object[] args = new Object[]{
+                allAttributes.getGood(),
+                allAttributes.getCommentTime()};
         int result = jdbcTemplate.update(sql, args);
         if (result == 1) {
             return Result.ok();
