@@ -12,10 +12,14 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
 
 @RestController
 @CrossOrigin(origins = "*")
@@ -34,6 +38,7 @@ public class FileLoader {
     @PostMapping("upload")
     public Result uploadFile(MultipartFile file) throws IOException {
         String fileName = file.getOriginalFilename();
+
         fileName.replaceAll(" ", "");
         String path = ResourceUtils.getURL("classpath:").getPath();
 
@@ -92,6 +97,7 @@ public class FileLoader {
      */
     @GetMapping("download")
     public ResponseEntity<byte[]> downloadFile(String filePath) throws IOException {
+        System.out.println(filePath);
         File file = new File("C:\\Users\\XinkaiHu\\Documents\\_programming\\course_management\\target\\classes\\upload\\" + filePath);
         byte[] data = Files.readAllBytes(file.toPath());
 
@@ -99,5 +105,59 @@ public class FileLoader {
         headers.setContentDispositionFormData("attachment", new String(file.getName().getBytes(), "iso8859-1"));
         headers.setContentLength(data.length);
         return new ResponseEntity<>(data, headers, HttpStatus.OK);
+    }
+
+    @PostMapping("uploadReportFile")
+    public Result uploadReportFile(MultipartFile file) throws IOException {
+        String fileName = file.getOriginalFilename();
+
+        if (fileName == null) {
+            return Result.fail("fileName==null");
+        }
+        if (!fileName.endsWith(".csv")) {
+            return Result.fail("Not .csv file.");
+        }
+        fileName.replaceAll(" ", "");
+        String path = ResourceUtils.getURL("classpath:").getPath();
+
+        File dir = new File(path + "/upload");
+        if (!dir.exists()) {
+            boolean mkdirs = dir.mkdirs();
+        }
+
+        File realFile = new File(dir + "/" + fileName);
+        if (!realFile.exists()) {
+            file.transferTo(realFile);
+        }
+
+        BufferedReader reader = new BufferedReader(new FileReader(realFile));
+        reader.readLine();
+        String line;
+        int lineNumber = 1;
+        List<String> errorMsg = new LinkedList<>();
+
+        while ((line = reader.readLine()) != null) {
+            ++lineNumber;
+            String[] data = line.split(",");
+            String sql = "update report set score=? where studentId=? and classId=?;";
+            Object[] args = {data[2], data[1], data[0]};
+            int result = jdbcTemplate.update(sql, args);
+            if (result == 0) {
+                errorMsg.add("Error at line " + lineNumber + ". Args: " + Arrays.toString(args));
+            }
+        }
+
+        reader.close();
+        boolean result = realFile.delete();
+
+        if (result) {
+            if (errorMsg.isEmpty()) {
+                return Result.ok();
+            } else {
+                return Result.ok(errorMsg);
+            }
+        } else {
+            return Result.fail("Error");
+        }
     }
 }

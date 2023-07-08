@@ -242,6 +242,7 @@ public class Controller {
                 "from requirement                                                   " +
                 "       natural join class                                          " +
                 "       natural join report                                         " +
+                "       natural join student                                        " +
                 "where studentId=?                                                  " +
                 "       and score is not null;                                      ";
         Object[] args = new Object[]{studentId};
@@ -253,6 +254,7 @@ public class Controller {
                 "from requirement                                                   " +
                 "       natural join class                                          " +
                 "       natural join report                                         " +
+                "       natural join student                                        " +
                 "where studentId=?                                                  " +
                 "       and score is not null;                                      ";
         Double sumOfWeightedScore = jdbcTemplate.queryForObject(sql, double.class, args);
@@ -267,6 +269,23 @@ public class Controller {
     }
 
     /**
+     * 查询已选课程总学分
+     *
+     * @param studentId 学生学号
+     * @return
+     */
+    @GetMapping("getTotalCredit")
+    public Result getTotalCredit(String studentId) {
+        String sql = "select sum(credit) from class natural join report natural join requirement natural join student where studentId=? and score is not null;";
+        Object[] args = new Object[]{studentId};
+        Double totalCredit = jdbcTemplate.queryForObject(sql, double.class, args);
+        if (totalCredit == null) {
+            return Result.fail("Args: " + Arrays.toString(args));
+        }
+        return Result.ok(totalCredit);
+    }
+
+    /**
      * 查询绩点
      *
      * @param studentId 学生学号
@@ -278,6 +297,7 @@ public class Controller {
                 "from requirement                                                   " +
                 "       natural join class                                          " +
                 "       natural join report                                         " +
+                "       natural join student                                        " +
                 "where studentId=?                                                  " +
                 "       and score is not null;                                      ";
         Object[] args = new Object[]{studentId};
@@ -289,6 +309,7 @@ public class Controller {
                 "from requirement                                                   " +
                 "       natural join class                                          " +
                 "       natural join report                                         " +
+                "       natural join student                                        " +
                 "where studentId=?                                                  " +
                 "       and score is not null                                       " +
                 "       and score>=90;                                              ";
@@ -297,6 +318,7 @@ public class Controller {
                 "from requirement                                                   " +
                 "       natural join class                                          " +
                 "       natural join report                                         " +
+                "       natural join student                                        " +
                 "where studentId=?                                                  " +
                 "       and score is not null                                       " +
                 "       and score<90;                                               ";

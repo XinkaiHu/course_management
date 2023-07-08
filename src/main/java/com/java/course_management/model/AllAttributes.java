@@ -48,6 +48,11 @@ public class AllAttributes {
     private String classId;
 
     /**
+     * 开课校区 Class
+     */
+    private String campus;
+
+    /**
      * 班级容量 Class
      */
     private long capacity;
@@ -324,6 +329,14 @@ public class AllAttributes {
 
     public void setClassroom(String classroom) {
         this.classroom = classroom;
+    }
+
+    public String getCampus() {
+        return campus;
+    }
+
+    public void setCampus(String campus) {
+        this.campus = campus;
     }
 
     public String getStudentName() {
