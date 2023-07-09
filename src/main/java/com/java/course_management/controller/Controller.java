@@ -91,9 +91,9 @@ public class Controller {
             String courseId) {
         String sql = "select distinct                                               " +
                 "       class.classId,                                              " +
-                "       teacherName,                                                " +
-                "       campus,                                                     " +
-                "       capacity,                                                   " +
+                "       teacher.teacherName,                                        " +
+                "       class.campus,                                               " +
+                "       class.capacity,                                             " +
                 "       (class.classId in (                                         " +
                 "               select report.classId                               " +
                 "               from report                                         " +
