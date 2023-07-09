@@ -1,22 +1,22 @@
-package com.sample;
+package com.java.course_management.model;
 
 
 public class Class {
 
-  private String classId;
+    private String classId;
     private long capacity;
     private String campus;
     private String teacherId;
-  private String courseId;
+    private String courseId;
 
 
-  public String getClassId() {
-    return classId;
-  }
+    public String getClassId() {
+        return classId;
+    }
 
-  public void setClassId(String classId) {
-    this.classId = classId;
-  }
+    public void setClassId(String classId) {
+        this.classId = classId;
+    }
 
 
     public long getCapacity() {
@@ -46,12 +46,12 @@ public class Class {
     }
 
 
-  public String getCourseId() {
-    return courseId;
-  }
+    public String getCourseId() {
+        return courseId;
+    }
 
-  public void setCourseId(String courseId) {
-    this.courseId = courseId;
-  }
+    public void setCourseId(String courseId) {
+        this.courseId = courseId;
+    }
 
 }

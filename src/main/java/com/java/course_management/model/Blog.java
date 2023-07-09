@@ -9,8 +9,6 @@ public class Blog {
   private String studentId;
   private String courseName;
   private String teacherName;
-  private long good;
-  private long star;
 
 
   public String getCommentTime() {
@@ -64,24 +62,6 @@ public class Blog {
 
   public void setTeacherName(String teacherName) {
     this.teacherName = teacherName;
-  }
-
-
-  public long getGood() {
-    return good;
-  }
-
-  public void setGood(long good) {
-    this.good = good;
-  }
-
-
-  public long getStar() {
-    return star;
-  }
-
-  public void setStar(long star) {
-    this.star = star;
   }
 
 }

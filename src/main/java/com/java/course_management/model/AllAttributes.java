@@ -1,5 +1,6 @@
 package com.java.course_management.model;
 
+
 public class AllAttributes {
 
     /**
@@ -36,11 +37,6 @@ public class AllAttributes {
      * 点赞数 Blog
      */
     private long good;
-
-    /**
-     * 收藏数 Blog
-     */
-    private long star;
 
     /**
      * 教学班号 Class Report Schedule
@@ -201,14 +197,6 @@ public class AllAttributes {
 
     public void setGood(long good) {
         this.good = good;
-    }
-
-    public long getStar() {
-        return star;
-    }
-
-    public void setStar(long star) {
-        this.star = star;
     }
 
     public String getClassId() {

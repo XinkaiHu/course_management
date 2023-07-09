@@ -105,7 +105,7 @@ public class Controller {
                 "               where c.classId=class.classId)                      " +
                 "       as currentTake                                              " +
                 "from class                                                         " +
-                "natural join teacher                                               " +
+                "       natural join teacher                                        " +
                 "where courseId=?;                                                  ";
         Object[] args = new Object[]{studentId, courseId};
         System.out.println("Args: " + Arrays.toString(args));
@@ -337,6 +337,14 @@ public class Controller {
         return Result.ok(result);
     }
 
+    @GetMapping("getSelectedCourse")
+    public Result getSelectedCourse(String studentId) {
+        String sql = "select distinct * from student natural join report natural join class natural join requirement where studentId=?";
+        Object[] args = new Object[]{studentId};
+        List<Map<String, Object>> result = jdbcTemplate.queryForList(sql, args);
+        return Result.ok(result);
+    }
+
     /**
      * 查询学生论坛信息
      *
@@ -345,7 +353,11 @@ public class Controller {
     @GetMapping("getBlog")
     public Result getBlog() {
         String sql = "" +
-                "select *                                                           " +
+                "select *, (                                                        " +
+                "       select count(1)                                             " +
+                "       from thumb                                                  " +
+                "       where thumb.commentTime=blog.commentTime                    " +
+                ") as goodNum                                                       " +
                 "from blog join student                                             " +
                 "       on blog.studentId=student.studentId                         " +
                 "order by commentTime desc;                                         ";
@@ -517,30 +529,54 @@ public class Controller {
                 allAttributes.getTeacherName()};
         int result = jdbcTemplate.update(sql, args);
         if (result == 1) {
-            return Result.ok();
+            return Result.fail("Args: " + Arrays.toString(args));
         }
-        return Result.fail("Args: " + Arrays.toString(args));
+        return Result.ok();
+    }
+
+    @PostMapping("deleteBlog")
+    public Result deleteBlog(@RequestBody AllAttributes allAttributes) {
+        String sql = "delete from thumb where commentTime=?;";
+        Object[] args = new Object[]{allAttributes.getCommentTime()};
+        int result;
+        jdbcTemplate.update(sql, args);
+        sql = "delete from blog where commentTime=?;";
+        result = jdbcTemplate.update(sql, args);
+        if (result == 1) {
+            return Result.fail("Args: " + Arrays.toString(args));
+        }
+        return Result.ok();
     }
 
     /**
      * 更新博客点赞数
      *
+     * @param studentId
      * @param commentTime
-     * @param good
      * @return
      */
     @PostMapping("updateLike")
     public Result updateLike(@RequestBody AllAttributes allAttributes) {
-        String sql = "update blog                                                   " +
-                "set good=?                                                         " +
-                "where commentTime=?;                                               ";
+        String sql = "select * from thumb where studentId=? and commentTime=?;";
         Object[] args = new Object[]{
-                allAttributes.getGood(),
+                allAttributes.getStudentId(),
                 allAttributes.getCommentTime()};
-        int result = jdbcTemplate.update(sql, args);
-        if (result == 1) {
+        System.out.println(Arrays.toString(args));
+        List<Map<String, Object>> list = jdbcTemplate.queryForList(sql, args);
+        if (list.isEmpty()) {
+            sql = "insert into thumb (studentId, commentTime) values (?, ?);";
+            int result = jdbcTemplate.update(sql, args);
+            if (result == 0) {
+                return Result.fail("Args: " + Arrays.toString(args));
+            }
+            return Result.ok();
+        } else {
+            sql = "delete from thumb where studentId=? and commentTime=?;";
+            int result = jdbcTemplate.update(sql, args);
+            if (result == 0) {
+                return Result.fail("Args: " + Arrays.toString(args));
+            }
             return Result.ok();
         }
-        return Result.fail("Args: " + Arrays.toString(args));
     }
 }
