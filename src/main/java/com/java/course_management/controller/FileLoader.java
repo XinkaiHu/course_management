@@ -65,7 +65,9 @@ public class FileLoader {
     @PostMapping("updatePhoto")
     public Result updatePhoto(@RequestBody AllAttributes allAttributes) {
         String sql = "update student set photo=? where studentId=?;";
-        Object[] args = new Object[] {allAttributes.getPhoto().substring(allAttributes.getPhoto().lastIndexOf("/") + 1), allAttributes.getStudentId()};
+        Object[] args = new Object[]{
+                allAttributes.getPhoto().substring(allAttributes.getPhoto().lastIndexOf("/") + 1),
+                allAttributes.getStudentId()};
         int result = jdbcTemplate.update(sql, args);
         System.out.println("Args: " + Arrays.toString(args));
         if (result == 1) {
@@ -98,11 +100,14 @@ public class FileLoader {
     @GetMapping("download")
     public ResponseEntity<byte[]> downloadFile(String filePath) throws IOException {
         System.out.println(filePath);
-        File file = new File("C:\\Users\\XinkaiHu\\Documents\\_programming\\course_management\\target\\classes\\upload\\" + filePath);
+        File file = new File(
+                "C:\\Users\\XinkaiHu\\Documents\\_programming\\course_management\\target\\classes\\upload\\"
+                        + filePath);
         byte[] data = Files.readAllBytes(file.toPath());
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentDispositionFormData("attachment", new String(file.getName().getBytes(), "iso8859-1"));
+        headers.setContentDispositionFormData("attachment",
+                new String(file.getName().getBytes(), "iso8859-1"));
         headers.setContentLength(data.length);
         return new ResponseEntity<>(data, headers, HttpStatus.OK);
     }

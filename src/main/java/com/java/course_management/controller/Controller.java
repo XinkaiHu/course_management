@@ -443,10 +443,10 @@ public class Controller {
                 allAttributes.getStudentId(),
                 allAttributes.getStudentName()};
         int result = jdbcTemplate.update(sql, args);
-        if (result == 1) {
-            return Result.ok();
+        if (result == 0) {
+            return Result.fail("Args: " + Arrays.toString(args));
         }
-        return Result.fail("Args: " + Arrays.toString(args));
+        return Result.ok();
     }
 
     /**
@@ -479,10 +479,10 @@ public class Controller {
                 allAttributes.getStudentId(),
                 allAttributes.getClassId()};
         int result = jdbcTemplate.update(sql, args);
-        if (result == 1) {
-            return Result.ok();
+        if (result == 0) {
+            return Result.fail("Args: " + Arrays.toString(args));
         }
-        return Result.fail("Args: " + Arrays.toString(args));
+        return Result.ok();
     }
 
     /**
@@ -504,10 +504,10 @@ public class Controller {
                 allAttributes.getStudentId(),
                 allAttributes.getCourseId()};
         int result = jdbcTemplate.update(sql, args);
-        if (result == 1) {
-            return Result.ok();
+        if (result == 0) {
+            return Result.fail("Args: " + Arrays.toString(args));
         }
-        return Result.fail("Args: " + Arrays.toString(args));
+        return Result.ok();
     }
 
     /**
@@ -526,10 +526,10 @@ public class Controller {
                 allAttributes.getStudentId(),
                 allAttributes.getClassId()};
         int result = jdbcTemplate.update(sql, args);
-        if (result == 1) {
-            return Result.ok();
+        if (result == 0) {
+            return Result.fail("Args: " + Arrays.toString(args));
         }
-        return Result.fail("Args: " + Arrays.toString(args));
+        return Result.ok();
     }
 
     /**
@@ -550,12 +550,11 @@ public class Controller {
                 allAttributes.getScore(),
                 allAttributes.getStudentId(),
                 allAttributes.getClassId()};
-        System.out.println(Arrays.toString(args));
         int result = jdbcTemplate.update(sql, args);
-        if (result == 1) {
-            return Result.ok();
+        if (result == 0) {
+            return Result.fail("Args: " + Arrays.toString(args));
         }
-        return Result.fail("Args: " + Arrays.toString(args));
+        return Result.ok();
     }
 
     /**
@@ -587,7 +586,7 @@ public class Controller {
                 allAttributes.getCourseName(),
                 allAttributes.getTeacherName()};
         int result = jdbcTemplate.update(sql, args);
-        if (result == 1) {
+        if (result == 0) {
             return Result.fail("Args: " + Arrays.toString(args));
         }
         return Result.ok();
@@ -607,7 +606,7 @@ public class Controller {
         jdbcTemplate.update(sql, args);
         sql = "delete from blog where commentTime=?;";
         result = jdbcTemplate.update(sql, args);
-        if (result == 1) {
+        if (result == 0) {
             return Result.fail("Args: " + Arrays.toString(args));
         }
         return Result.ok();
