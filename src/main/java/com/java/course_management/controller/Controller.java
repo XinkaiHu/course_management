@@ -162,6 +162,17 @@ public class Controller {
                 "       and timeQuantum=?                                           " +
                 "       and score is null;                                          ";
 
+        String sqlTeacherId = "select teacherId                                     " +
+                "from schedule                                                      " +
+                "       natural join class                                          " +
+                "       natural join report                                         " +
+                "       natural join teacher                                        " +
+                "where studentId=?                                                  " +
+                "       and week=?                                                  " +
+                "       and weekNum=?                                               " +
+                "       and timeQuantum=?                                           " +
+                "       and score is null;                                          ";
+
         String sqlCourseId = "select courseId                                       " +
                 "from schedule                                                      " +
                 "       natural join class                                          " +
@@ -171,12 +182,14 @@ public class Controller {
                 "       and weekNum=?                                               " +
                 "       and timeQuantum=?                                           " +
                 "       and score is null;                                          ";
+
         List<Map<String, List<String>>> result = new ArrayList<>();
         for (int week = 1; week <= 7; ++week) {
             Map<String, List<String>> map = new HashMap<>();
             map.put("courseName", new ArrayList<>());
             map.put("classroom", new ArrayList<>());
             map.put("teacherName", new ArrayList<>());
+            map.put("teacherId", new ArrayList<>());
             map.put("courseId", new ArrayList<>());
             for (int timeQuantum = 1; timeQuantum <= 5; ++timeQuantum) {
                 try {
@@ -196,6 +209,12 @@ public class Controller {
                             studentId, week, weekNum, timeQuantum));
                 } catch (Exception e) {
                     map.get("teacherName").add("");
+                }
+                try {
+                    map.get("teacherId").add(jdbcTemplate.queryForObject(sqlTeacherId, String.class,
+                            studentId, week, weekNum, timeQuantum));
+                } catch (Exception e) {
+                    map.get("teacherId").add("");
                 }
                 try {
                     map.get("courseId").add(jdbcTemplate.queryForObject(sqlCourseId, String.class,
@@ -337,6 +356,12 @@ public class Controller {
         return Result.ok(result);
     }
 
+    /**
+     * 查询学生已选课程
+     *
+     * @param studentId
+     * @return
+     */
     @GetMapping("getSelectedCourse")
     public Result getSelectedCourse(String studentId) {
         String sql = "select distinct * from student natural join report natural join class natural join requirement where studentId=?";
