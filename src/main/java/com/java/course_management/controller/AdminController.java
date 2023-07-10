@@ -123,6 +123,27 @@ public class AdminController {
     }
 
     /**
+     * 管理员获取学生成绩
+     *
+     * @return
+     */
+    @GetMapping("adminGetReport")
+    public Result adminGetReport(String keyword) {
+        if (keyword == null) {
+            keyword = "";
+        }
+        String sql = "select *                                                      " +
+                "from report                                                        " +
+                "       natural join student                                        " +
+                "where studentId like concat('%', ?, '%')                           " +
+                "       or studentName like concat('%', ?, '%')                     " +
+                "order by studentId;                                                ";
+        Object[] args = new Object[]{keyword, keyword};
+        List<Map<String, Object>> result = jdbcTemplate.queryForList(sql, args);
+        return Result.ok(result);
+    }
+
+    /**
      * 管理员增加学生信息
      *
      * @param studentId
@@ -372,6 +393,31 @@ public class AdminController {
                 allAttributes.getClassroom(),
                 allAttributes.getClassId()};
         int result = jdbcTemplate.update(sql, args);
+        if (result == 0) {
+            return Result.fail("Args: " + Arrays.toString(args));
+        }
+        return Result.ok();
+    }
+
+    /**
+     * 管理员重置学生成绩
+     *
+     * @param studentId
+     * @param classId
+     * @return
+     */
+    @PostMapping("adminResetScore")
+    public Result adminResetScore(@RequestBody AllAttributes allAttributes) {
+        String sql = "delete from report where studentId=? and classId=?;";
+        Object[] args = new Object[]{
+                allAttributes.getStudentId(),
+                allAttributes.getClassId()};
+        int result = jdbcTemplate.update(sql, args);
+        if (result == 0) {
+            return Result.fail("Args: " + Arrays.toString(args));
+        }
+        sql = "insert into report (studentId, classId) values (?, ?);";
+        result = jdbcTemplate.update(sql, args);
         if (result == 0) {
             return Result.fail("Args: " + Arrays.toString(args));
         }

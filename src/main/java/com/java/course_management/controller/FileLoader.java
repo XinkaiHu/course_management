@@ -107,6 +107,13 @@ public class FileLoader {
         return new ResponseEntity<>(data, headers, HttpStatus.OK);
     }
 
+    /**
+     * 上传成绩单文件
+     *
+     * @param file
+     * @return
+     * @throws IOException
+     */
     @PostMapping("uploadReportFile")
     public Result uploadReportFile(MultipartFile file) throws IOException {
         String fileName = file.getOriginalFilename();
@@ -139,6 +146,9 @@ public class FileLoader {
         while ((line = reader.readLine()) != null) {
             ++lineNumber;
             String[] data = line.split(",");
+            if (data.length == 1) {
+                data = line.split("\t");
+            }
             String sql = "update report set score=? where studentId=? and classId=?;";
             Object[] args = {data[2], data[1], data[0]};
             int result = jdbcTemplate.update(sql, args);

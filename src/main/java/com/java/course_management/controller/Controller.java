@@ -351,16 +351,38 @@ public class Controller {
      * @return
      */
     @GetMapping("getBlog")
-    public Result getBlog() {
+    public Result getBlog(String studentId) {
         String sql = "" +
                 "select *, (                                                        " +
                 "       select count(1)                                             " +
                 "       from thumb                                                  " +
                 "       where thumb.commentTime=blog.commentTime                    " +
-                ") as goodNum                                                       " +
+                ") as goodNum, (                                                    " +
+                "       select count(1)                                             " +
+                "       from thumb                                                  " +
+                "       where thumb.studentId=?                                     " +
+                "               and blog.commentTime=thumb.commentTime              " +
+                ") as isGood                                                        " +
                 "from blog join student                                             " +
                 "       on blog.studentId=student.studentId                         " +
                 "order by commentTime desc;                                         ";
+        Object[] args = new Object[]{studentId};
+        List<Map<String, Object>> result = jdbcTemplate.queryForList(sql, args);
+        return Result.ok(result);
+    }
+
+    @GetMapping("getBlogByTeacher")
+    public Result getBlogByTeacher(String teacherName) {
+        String sql = "select * from blog where teacherName=?;";
+        Object[] args = new Object[]{teacherName};
+        List<Map<String, Object>> result = jdbcTemplate.queryForList(sql);
+        return Result.ok(result);
+    }
+
+    @GetMapping("getBlogByCourse")
+    public Result getBlogByCourse(String courseName) {
+        String sql = "select * from blog where courseName=?;";
+        Object[] args = new Object[]{courseName};
         List<Map<String, Object>> result = jdbcTemplate.queryForList(sql);
         return Result.ok(result);
     }
@@ -534,6 +556,12 @@ public class Controller {
         return Result.ok();
     }
 
+    /**
+     * 删除博客
+     *
+     * @param commentTime
+     * @return
+     */
     @PostMapping("deleteBlog")
     public Result deleteBlog(@RequestBody AllAttributes allAttributes) {
         String sql = "delete from thumb where commentTime=?;";
