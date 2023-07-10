@@ -92,6 +92,7 @@ public class Controller {
         String sql = "select distinct                                               " +
                 "       class.classId,                                              " +
                 "       teacher.teacherName,                                        " +
+                "       teacher.teacherId,                                          " +
                 "       class.campus,                                               " +
                 "       class.capacity,                                             " +
                 "       (class.classId in (                                         " +
@@ -295,7 +296,13 @@ public class Controller {
      */
     @GetMapping("getTotalCredit")
     public Result getTotalCredit(String studentId) {
-        String sql = "select sum(credit) from class natural join report natural join requirement natural join student where studentId=? and score is not null;";
+        String sql = "select sum(credit)                                            " +
+                "from class                                                         " +
+                "       natural join report                                         " +
+                "       natural join requirement                                    " +
+                "       natural join student                                        " +
+                "where studentId=?                                                  " +
+                "       and score is not null;                                      ";
         Object[] args = new Object[]{studentId};
         Double totalCredit = jdbcTemplate.queryForObject(sql, double.class, args);
         if (totalCredit == null) {
