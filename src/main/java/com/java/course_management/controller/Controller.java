@@ -371,7 +371,12 @@ public class Controller {
      */
     @GetMapping("getSelectedCourse")
     public Result getSelectedCourse(String studentId) {
-        String sql = "select distinct * from student natural join report natural join class natural join requirement where studentId=?";
+        String sql = "select distinct *                                             " +
+                "from student                                                       " +
+                "       natural join report                                         " +
+                "       natural join class                                          " +
+                "       natural join requirement                                    " +
+                "where studentId=?;                                                 ";
         Object[] args = new Object[]{studentId};
         List<Map<String, Object>> result = jdbcTemplate.queryForList(sql, args);
         return Result.ok(result);
